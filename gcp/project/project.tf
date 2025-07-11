@@ -1,8 +1,8 @@
-variable "project_id" {
+variable "id" {
   type        = string
   description = "ID of the GCP project to create."
 }
-variable "parent_id" {
+variable "parent" {
   type        = string
   description = "Parent org/folder id to create the project under."
 }
@@ -20,12 +20,24 @@ variable "org_project" {
   description = "The organisation project which acts as the vpc host project and the project where artifacts like Docker images are stored. If specified, the create project becomes a vpc service project of the org_project and the serverless robot agent of this new project gets permission to read all artifacts in the org_project."
   default     = null
 }
+variable "owners" {
+  type    = list(string)
+  default = []
+}
+variable "editors" {
+  type    = list(string)
+  default = []
+}
+variable "viewers" {
+  type    = list(string)
+  default = []
+}
 
 resource "google_project" "main" {
-  name            = var.project_id
-  project_id      = var.project_id
-  org_id          = var.parent_is_folder ? null : var.parent_id
-  folder_id       = var.parent_is_folder ? var.parent_id : null
+  name            = var.id
+  project_id      = var.id
+  org_id          = var.parent_is_folder ? null : var.parent
+  folder_id       = var.parent_is_folder ? var.parent : null
   billing_account = var.billing_account
 }
 
@@ -56,7 +68,28 @@ resource "google_project_iam_member" "serverless_artifacts_reader" {
 
 resource "google_logging_project_exclusion" "cloudrun_requests" {
   name        = "cloudrun-requests"
-  project     = var.project_id
+  project     = var.id
   description = "Exclude cloudrun request logs."
   filter      = "LOG_ID(\"run.googleapis.com/requests\")"
+}
+
+resource "google_project_iam_member" "owners" {
+  for_each = toset(var.owners)
+  project  = google_project.main.project_id
+  role     = "roles/owner"
+  member   = each.key
+}
+
+resource "google_project_iam_member" "editors" {
+  for_each = toset(var.editors)
+  project  = google_project.main.project_id
+  role     = "roles/editor"
+  member   = each.key
+}
+
+resource "google_project_iam_member" "viewers" {
+  for_each = toset(var.editors)
+  project  = google_project.main.project_id
+  role     = "roles/viewer"
+  member   = each.key
 }
