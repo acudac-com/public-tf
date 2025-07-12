@@ -26,9 +26,9 @@ variable "builders" {
 resource "google_cloud_identity_group" "builders" {
   display_name = "Builders of the ${var.name} product"
   parent       = "customers/${var.customer_id}"
-  description  = "Members have full access to everything in the organisation."
+  description  = "Members can read and write to the product's bucket and docker registry."
   group_key {
-    id = "builders.${var.name}-product@${var.domain}"
+    id = "builders.${var.name}.products@${var.domain}"
   }
   labels = {
     "cloudidentity.googleapis.com/groups.discussion_forum" = ""
@@ -122,8 +122,9 @@ resource "google_storage_bucket_iam_member" "builders" {
 }
 
 resource "google_storage_managed_folder" "folder" {
-  bucket = "tfstate.${var.domain}"
-  name   = "${var.name}/"
+  bucket        = "tfstate.${var.domain}"
+  name          = "${var.name}/"
+  force_destroy = true
 }
 
 resource "google_storage_managed_folder_iam_member" "builders" {
