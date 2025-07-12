@@ -92,7 +92,7 @@ resource "google_artifact_registry_repository_iam_member" "builders" {
 }
 
 resource "google_storage_bucket" "main" {
-  name                     = "${var.name}.${var.org_project}.${var.domain}"
+  name                     = "${var.name}.products.${var.domain}"
   location                 = var.region
   project                  = var.org_project
   public_access_prevention = "enforced"
