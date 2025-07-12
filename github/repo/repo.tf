@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    github = {
+      source  = "integrations/github"
+      version = ">= 6.6.0"
+    }
+  }
+}
+
 variable "name" {
   type = string
 }
@@ -33,7 +42,8 @@ variable "admins" {
 }
 
 resource "github_repository" "main" {
-  name                 = var.name
+  name = var.name
+
   description          = var.description
   visibility           = var.public ? "public" : "private"
   auto_init            = true
@@ -41,7 +51,7 @@ resource "github_repository" "main" {
   license_template     = var.license
 }
 
-resource "github_repository_collaborators" "some_repo_collaborators" {
+resource "github_repository_collaborators" "main" {
   repository = github_repository.main.name
   dynamic "user" {
     for_each = toset(var.pullers)
