@@ -16,6 +16,14 @@ variable "description" {
 variable "public" {
   type = bool
 }
+variable "is_template" {
+  type    = bool
+  default = false
+}
+variable "template" {
+  type    = string
+  default = ""
+}
 variable "license" {
   type    = string
   default = "mit"
@@ -42,13 +50,20 @@ variable "admins" {
 }
 
 resource "github_repository" "main" {
-  name = var.name
-
+  name                 = var.name
   description          = var.description
   visibility           = var.public ? "public" : "private"
   auto_init            = true
   vulnerability_alerts = true
   license_template     = var.license
+  is_template          = var.is_template
+  dynamic "template" {
+    for_each = var.template == "" ? [] : [1]
+    content {
+      owner      = split("/", var.template)[0]
+      repository = split("/", var.template)[1]
+    }
+  }
 }
 
 resource "github_repository_collaborators" "main" {
